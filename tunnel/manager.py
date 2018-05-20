@@ -3,13 +3,51 @@ import psutil
 import shlex
 import subprocess
 
-from tunnel.db import Database
-
 LOG = logging.getLogger(__name__)
+
+
+class Tunnel(object):
+    def __init__(self, server, remote, local=None, name=None, pid=None):
+        self.server = server
+        self.remote = remote
+
+        if local is None:
+            local = remote
+        if name is None:
+            name = 'localhost'
+        self.local = local
+        self.name = name
+        self.pid = pid
+
+    def is_alive(self):
+        if self.pid is None:
+            return False
+        try:
+            p = psutil.Process(int(self.pid))
+        except psutil.NoSuchProcess:
+            return False
+        if not p.is_running():
+            return False
+        return True
+
+    def stop(self):
+        if self.pid is None:
+            return
+        try:
+            p = psutil.Process(self.pid)
+            if p.is_running():
+                p.terminate()
+                try:
+                    p.wait(timeout=5)
+                except psutil.TimeoutExpired:
+                    p.kill()
+        except psutil.NoSuchProcess:
+            return
 
 
 class TunnelManager(object):
     def __init__(self):
+        from tunnel.db import Database
         self.db = Database()
 
     def _run_ssh(self, cmd):
@@ -29,15 +67,6 @@ class TunnelManager(object):
             LOG.debug("ssh still running")
         return proc.pid
 
-    def is_alive(self, pid):
-        try:
-            p = psutil.Process(pid)
-        except psutil.NoSuchProcess:
-            return False
-        if not p.is_running():
-            return False
-        return True
-
     def create(self, server, port, local_port=None, name=None):
         if local_port is None:
             local_port = port
@@ -45,7 +74,15 @@ class TunnelManager(object):
         if name is None:
             name = 'localhost'
 
+        tunnel = Tunnel(server, port, local_port, name)
+
         # TODO: check for in use
+        # existing = self.db.list()
+        # for e in existing:
+        #     e_s
+        #     if server == e.server and
+        #        port == e.port and
+        #        local_port == e.
 
         ssh_cmd = "ssh -NL {local_port}:{name}:{remote_port} {server}".format(
             local_port=local_port,
@@ -58,8 +95,9 @@ class TunnelManager(object):
         pid = self._run_ssh(ssh_cmd)
         if pid is None:
             return
+        tunnel.pid = pid
 
-        self.db.create_tunnel(server, port, local_port, pid, name)
+        self.db.create_tunnel(tunnel)
 
     def list(self):
         tunnels = self.db.list()
@@ -67,17 +105,16 @@ class TunnelManager(object):
             print('There are no tunnels.')
             return
         for i in range(len(tunnels)):
-            pid, server, remote, local, name = tunnels[i]
-            alive = self.is_alive(pid)
-            if alive:
+            tunnel = tunnels[i]
+            if tunnel.is_alive():
                 alive_msg = ''
             else:
                 alive_msg = ' (dead)'
             line = "{i}: {server} {local}:{remote}{alive_msg}".format(
                 i=i+1,
-                server=server,
-                local=local,
-                remote=remote,
+                server=tunnel.server,
+                local=tunnel.local,
+                remote=tunnel.remote,
                 alive_msg=alive_msg,
             )
             print(line)
@@ -90,15 +127,5 @@ class TunnelManager(object):
             self.list()
             return
         tunnel = tunnels[num-1]
-        pid = tunnel[0]
-        try:
-            p = psutil.Process(pid)
-            if p.is_running():
-                p.terminate()
-                try:
-                    p.wait(timeout=5)
-                except psutil.TimeoutExpired:
-                    p.kill()
-        except psutil.NoSuchProcess:
-            pass
-        self.db.remove(pid)
+        tunnel.stop()
+        self.db.remove(tunnel)
