@@ -29,6 +29,15 @@ class TunnelManager(object):
             LOG.debug("ssh still running")
         return proc.pid
 
+    def is_alive(self, pid):
+        try:
+            p = psutil.Process(pid)
+        except psutil.NoSuchProcess:
+            return False
+        if not p.is_running():
+            return False
+        return True
+
     def create(self, server, port, local_port=None, name=None):
         if local_port is None:
             local_port = port
@@ -59,11 +68,17 @@ class TunnelManager(object):
             return
         for i in range(len(tunnels)):
             pid, server, remote, local, name = tunnels[i]
-            line = "{i}: {server} {local}:{remote}".format(
+            alive = self.is_alive(pid)
+            if alive:
+                alive_msg = ''
+            else:
+                alive_msg = ' (dead)'
+            line = "{i}: {server} {local}:{remote}{alive_msg}".format(
                 i=i+1,
                 server=server,
                 local=local,
-                remote=remote
+                remote=remote,
+                alive_msg=alive_msg,
             )
             print(line)
 
