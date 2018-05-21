@@ -63,6 +63,11 @@ class Database(object):
             tunnels.append(Tunnel(*row))
         return tunnels
 
+    def reopen(self, tunnel):
+        params = (tunnel.pid, tunnel.server, tunnel.remote, tunnel.local, tunnel.name)
+        self.cursor.execute('UPDATE tunnel SET pid=? WHERE server=? AND remote=? AND local=? AND name=?', params)
+        self.conn.commit()
+
     def remove(self, tunnel):
         sql = "DELETE FROM tunnel WHERE pid=?"
         self.cursor.execute(sql, (tunnel.pid,))

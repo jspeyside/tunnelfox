@@ -19,6 +19,18 @@ class Tunnel(object):
         self.name = name
         self.pid = pid
 
+    def __eq__(self, other):
+        if self is other:
+            return True
+        if type(other) != self.__class__:
+            return False
+        if self.server == other.server and \
+           self.remote == other.remote and \
+           self.local == other.local and \
+           self.name == other.name:
+            return True
+        return False
+
     def is_alive(self):
         if self.pid is None:
             return False
@@ -64,7 +76,7 @@ class TunnelManager(object):
                 LOG.err(err)
                 return
         except Exception:
-            LOG.debug("ssh still running")
+            pass
         return proc.pid
 
     def create(self, server, port, local_port=None, name=None):
@@ -77,12 +89,16 @@ class TunnelManager(object):
         tunnel = Tunnel(server, port, local_port, name)
 
         # TODO: check for in use
-        # existing = self.db.list()
-        # for e in existing:
-        #     e_s
-        #     if server == e.server and
-        #        port == e.port and
-        #        local_port == e.
+        reopen = False
+        for t in self.db.list():
+            if tunnel == t:
+                if t.is_alive():
+                    print('Tunnel is already in use')
+                    self.list()
+                    return
+                else:
+                    print('reopening tunnel')
+                    reopen = True
 
         ssh_cmd = "ssh -NL {local_port}:{name}:{remote_port} {server}".format(
             local_port=local_port,
@@ -96,6 +112,10 @@ class TunnelManager(object):
         if pid is None:
             return
         tunnel.pid = pid
+
+        if reopen:
+            self.db.reopen(tunnel)
+            return
 
         self.db.create_tunnel(tunnel)
 
