@@ -2,7 +2,7 @@ import argparse
 import logging
 import sys
 
-from tunnel.manager import TunnelManager
+from .manager import TunnelManager
 
 
 FORMAT = "%(levelname)s[%(filename)s:%(lineno)d] %(message)s"
@@ -51,7 +51,8 @@ def main():
     new.add_argument(
         '--local-port',
         '-l',
-        help='The local port to forward to the remote end. Defaults to the same port as the remot port if unspecified.')
+        help=('The local port to forward to the remote end. '
+              'Defaults to the same port as the remot port if unspecified.'))
     new.add_argument(
         '--name',
         '-n',

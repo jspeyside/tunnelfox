@@ -103,8 +103,6 @@ setup(
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
     ],
 
@@ -112,7 +110,8 @@ setup(
     # project page. What does your project relate to?
     #
     # Note that this is a string of words separated by whitespace, not a list.
-    keywords='port port-forward port-forwarding tunnel ssh manager setuptools development',  # Optional
+    keywords=('port port-forward port-forwarding tunnel ssh '
+              'manager setuptools development'),  # Optional
 
     # You can just specify package directories manually here if your project is
     # simple. Or you can use find_packages().
@@ -143,7 +142,7 @@ setup(
     # projects.
     extras_require={  # Optional
         'dev': ['check-manifest'],
-        'test': ['coverage'],
+        'test': ['coverage', 'tox'],
     },
 
     # If there are data files included in your packages that need to be

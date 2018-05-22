@@ -2,7 +2,7 @@ import logging
 import os
 import sqlite3
 
-from tunnel.manager import Tunnel
+from .tunnel import Tunnel
 
 
 LOG = logging.getLogger(__name__)
@@ -24,7 +24,8 @@ class Database(object):
 
     def _schema(self):
         # Tunnels
-        sql = "CREATE TABLE IF NOT EXISTS tunnel (server text, remote integer, local integer, name text, pid integer)"
+        sql = ("CREATE TABLE IF NOT EXISTS tunnel (server text, "
+               "remote integer, local integer, name text, pid integer)")
         self.cursor.execute(sql)
         self.conn.commit()
 
@@ -35,7 +36,8 @@ class Database(object):
     def create_tunnel(self, tunnel):
         if tunnel.pid is None:
             raise Exception("pid is required")
-        sql = "INSERT INTO tunnel VALUES('{server}', {remote}, {local}, '{name}', {pid})".format(
+        sql = ("INSERT INTO tunnel VALUES('{server}', {remote}, {local}, "
+               "'{name}', {pid})").format(
             server=tunnel.server,
             remote=tunnel.remote,
             local=tunnel.local,
@@ -49,7 +51,8 @@ class Database(object):
         if name is None:
             name = 'localhost'
         params = (server, remote, local, name)
-        self.cursor.execute('SELECT * FROM tunnel WHERE server=? AND remote=? AND local=? AND name=?', params)
+        self.cursor.execute("SELECT * FROM tunnel WHERE server=? AND "
+                            "remote=? AND local=? AND name=?", params)
         tunnel = self.cursor.fetchone()
         if tunnel is None:
             return False
@@ -64,8 +67,13 @@ class Database(object):
         return tunnels
 
     def reopen(self, tunnel):
-        params = (tunnel.pid, tunnel.server, tunnel.remote, tunnel.local, tunnel.name)
-        self.cursor.execute('UPDATE tunnel SET pid=? WHERE server=? AND remote=? AND local=? AND name=?', params)
+        params = (tunnel.pid,
+                  tunnel.server,
+                  tunnel.remote,
+                  tunnel.local,
+                  tunnel.name)
+        self.cursor.execute("UPDATE tunnel SET pid=? WHERE server=? AND "
+                            "remote=? AND local=? AND name=?", params)
         self.conn.commit()
 
     def remove(self, tunnel):
