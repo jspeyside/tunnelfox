@@ -1,16 +1,7 @@
 import psutil
 
-from mock import (
-    patch,
-    Mock,
-    MagicMock,
-)
-from tests.base import (
-    capture_output,
-    BaseTest,
-)
-
-from tunnel.manager import TunnelManager
+from mock import patch
+from tests.base import BaseTest
 from tunnel.tunnel import Tunnel
 
 PROCS = {}
@@ -55,7 +46,7 @@ class TestTunnel(BaseTest):
         mock_process.side_effect = psutil.NoSuchProcess(tunnel.pid)
         assert not tunnel.is_alive()
 
-    @patch('tunnel.manager.psutil.Process')
+    @patch('tunnel.tunnel.psutil.Process')
     def test_stop(self, mock_process):
         tunnel = Tunnel('server', 123, 456, pid=12345)
         proc = MockProcess(tunnel.pid, "ssh")
@@ -65,7 +56,7 @@ class TestTunnel(BaseTest):
         tunnel.stop()
         assert not tunnel.is_alive()
 
-    @patch('tunnel.manager.psutil.Process')
+    @patch('tunnel.tunnel.psutil.Process')
     def test_stop_timeout(self, mock_process):
         tunnel = Tunnel('server', 123, 456, pid=12345)
         proc = MockProcess(tunnel.pid, "ssh")

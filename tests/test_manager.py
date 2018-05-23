@@ -1,19 +1,11 @@
 import psutil
 
-from mock import (
-    patch,
-    Mock,
-    MagicMock,
-)
+from mock import patch
 from tests.base import (
     capture_output,
     BaseTest,
 )
 from tunnel.manager import TunnelManager
-from tunnel.tunnel import Tunnel
-from tunnel.db import Database
-
-PROCS = {}
 
 
 class MockProcess(object):

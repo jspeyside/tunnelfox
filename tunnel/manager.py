@@ -1,5 +1,4 @@
 import logging
-import psutil
 import shlex
 import subprocess
 

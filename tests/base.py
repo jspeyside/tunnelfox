@@ -1,7 +1,12 @@
 import sys
 from contextlib import contextmanager
 from datetime import datetime
-from StringIO import StringIO
+try:
+    # Python 2
+    from StringIO import StringIO
+except ImportError:
+    # Python 3
+    from io import StringIO
 
 
 def total_seconds(delta):
