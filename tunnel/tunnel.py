@@ -1,5 +1,7 @@
 import logging
 import psutil
+import shlex
+import subprocess
 
 LOG = logging.getLogger(__name__)
 
@@ -29,6 +31,25 @@ class Tunnel(object):
             return True
         return False
 
+    def _run_ssh(self, cmd):
+        args = shlex.split(cmd)
+        try:
+            proc = subprocess.Popen(args,
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE)
+        except OSError:
+            LOG.error("SSH not installed or not found in PATH")
+            return
+
+        try:
+            out, err = proc.communicate(timeout=0.5)
+            if proc.returncode != 0:
+                LOG.err(err)
+                return
+        except Exception:
+            pass
+        return proc.pid
+
     def is_alive(self):
         if self.pid is None:
             return False
@@ -39,6 +60,20 @@ class Tunnel(object):
         if not p.is_running():
             return False
         return True
+
+    def start(self):
+        ssh_cmd = "ssh -NL {local}:{name}:{remote} {server}".format(
+            local=self.local,
+            name=self.name,
+            remote=self.remote,
+            server=self.server,
+        )
+        forward_name = "{} {}:{}".format(self.server, self.local, self.remote)
+        LOG.info("Starting tunnel {}".format(forward_name))
+        pid = self._run_ssh(ssh_cmd)
+        if pid is None:
+            return
+        self.pid = pid
 
     def stop(self):
         if self.pid is None:
