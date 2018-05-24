@@ -45,7 +45,6 @@ class TestDatabase(BaseTest):
     def test_create_tunnel(self, mock_os, mock_sql):
         t = MockTunnel('host', 8080)
         t.start()
-        t.pid = 5
         mock_conn = Mock()
         mock_cursor = Mock()
         mock_sql.connect.return_value = mock_conn
@@ -54,7 +53,8 @@ class TestDatabase(BaseTest):
         mock_os.path.expanduser('/home/ubuntu')
         d = Database()
         d.create_tunnel(t)
-        sql = "INSERT INTO tunnel VALUES('host', 8080, 8080, 'localhost', 5)"
+        sql = ("INSERT INTO tunnel VALUES('host', 8080, "
+               "8080, 'localhost', {})".format(t.pid))
         mock_cursor.execute.assert_called_with(sql)
 
     @patch('tunnel.db.sqlite3')
@@ -106,3 +106,71 @@ class TestDatabase(BaseTest):
         d = Database()
         in_use = d.in_use('host', 8080, 8080)
         assert not in_use
+
+    @patch('tunnel.db.sqlite3')
+    @patch('tunnel.db.os')
+    def test_list(self, mock_os, mock_sql):
+        t = MockTunnel('host', 8080)
+        t.start()
+        mock_conn = Mock()
+        mock_cursor = Mock()
+        mock_sql.connect.return_value = mock_conn
+        mock_conn.cursor.return_value = mock_cursor
+        mock_cursor.fetchall.return_value = \
+            [('host', 8080, 8080, t.name, t.pid)]
+        mock_os.path.exists.return_value = False
+        mock_os.path.expanduser('/home/ubuntu')
+        d = Database()
+        d.create_tunnel(t)
+        db_tunnels = d.list()
+        assert len(db_tunnels) == 1
+        assert db_tunnels[0].pid == t.pid
+
+    @patch('tunnel.db.sqlite3')
+    @patch('tunnel.db.os')
+    def test_reopen(self, mock_os, mock_sql):
+        t = MockTunnel('host', 8080)
+        t.start()
+        mock_conn = Mock()
+        mock_cursor = Mock()
+        mock_sql.connect.return_value = mock_conn
+        mock_conn.cursor.return_value = mock_cursor
+        mock_cursor.fetchall.return_value = \
+            [('host', 8080, 8080, t.name, t.pid)]
+        mock_os.path.exists.return_value = False
+        mock_os.path.expanduser('/home/ubuntu')
+        d = Database()
+        d.create_tunnel(t)
+        db_tunnels = d.list()
+        assert len(db_tunnels) == 1
+        assert db_tunnels[0].pid == t.pid
+        original_pid = t.pid
+        print(original_pid)
+        t.stop()
+        t.start()
+        print(t.pid)
+        d.reopen(t)
+        mock_cursor.fetchall.return_value = \
+            [('host', 8080, 8080, t.name, t.pid)]
+        db_tunnels = d.list()
+        assert len(db_tunnels) == 1
+        assert db_tunnels[0].pid != original_pid
+        assert db_tunnels[0].pid == t.pid
+
+    @patch('tunnel.db.sqlite3')
+    @patch('tunnel.db.os')
+    def test_remove(self, mock_os, mock_sql):
+        t = MockTunnel('host', 8080)
+        t.start()
+        mock_conn = Mock()
+        mock_cursor = Mock()
+        mock_sql.connect.return_value = mock_conn
+        mock_conn.cursor.return_value = mock_cursor
+        mock_os.path.exists.return_value = False
+        mock_os.path.expanduser('/home/ubuntu')
+        d = Database()
+        d.create_tunnel(t)
+        d.remove(t)
+        expected_sql = "DELETE FROM tunnel WHERE pid=?"
+        expected_params = (t.pid,)
+        mock_cursor.execute.assert_called_with(expected_sql, expected_params)

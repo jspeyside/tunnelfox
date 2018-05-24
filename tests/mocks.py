@@ -1,4 +1,4 @@
-import random
+PIDS = 1
 
 
 class MockDatabase(object):
@@ -67,7 +67,9 @@ class MockTunnel(object):
         return self.alive
 
     def start(self):
-        self.pid = random.randrange(2, 32768)
+        global PIDS
+        PIDS += 1
+        self.pid = PIDS
         self.alive = True
 
     def stop(self):
