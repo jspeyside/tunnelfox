@@ -21,10 +21,10 @@ class TestDatabase(BaseTest):
         Database()
         assert mock_os.mkdir.called_once_with('/home/ubuntu/.tunnelfox')
         assert mock_sql.connect.called_once_with(
-                '/home/ubuntu/.tunnelfox/tunnelfox.db')
+            '/home/ubuntu/.tunnelfox/tunnelfox.db')
         assert mock_cursor.execute.called_once_with(
-                "CREATE TABLE IF NOT EXISTS tunnel (server text, "
-                "remote integer, local integer, name text, pid integer)")
+            "CREATE TABLE IF NOT EXISTS tunnel (server text, "
+            "remote integer, local integer, name text, pid integer)")
         assert mock_conn.commit.called_once()
 
     @patch('tunnel.db.sqlite3')

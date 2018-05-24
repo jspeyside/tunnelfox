@@ -22,6 +22,8 @@ class Tunnel(object):
     def __eq__(self, other):
         if self is other:
             return True
+        if type(other) != type(self):
+            return False
         if self.server == other.server and \
            self.remote == other.remote and \
            self.local == other.local and \
