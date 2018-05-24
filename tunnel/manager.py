@@ -18,7 +18,6 @@ class TunnelManager(object):
             name = 'localhost'
 
         tunnel = Tunnel(server, port, local_port, name)
-
         # TODO: check for in use
         reopen = False
         for t in self.db.list():

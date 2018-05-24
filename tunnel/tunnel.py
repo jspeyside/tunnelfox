@@ -22,8 +22,6 @@ class Tunnel(object):
     def __eq__(self, other):
         if self is other:
             return True
-        if type(other) != self.__class__:
-            return False
         if self.server == other.server and \
            self.remote == other.remote and \
            self.local == other.local and \
@@ -44,7 +42,7 @@ class Tunnel(object):
         try:
             out, err = proc.communicate(timeout=0.5)
             if proc.returncode != 0:
-                LOG.err(err)
+                LOG.error(err)
                 return
         except Exception:
             pass

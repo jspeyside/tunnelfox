@@ -5,8 +5,6 @@ from mock import patch
 from tests.base import BaseTest
 from tunnel.tunnel import Tunnel
 
-PROCS = {}
-
 
 class MockProcess(object):
     terminate_time = 0
@@ -17,6 +15,9 @@ class MockProcess(object):
         self.running = True
         self.pid = pid
         self.command = command
+
+    def communicate(self, timeout=0):
+        return ("", "")
 
     def is_running(self):
         return self.running
@@ -95,6 +96,23 @@ class TestTunnel(BaseTest):
             stderr=subprocess.PIPE
         )
         mock_process.assert_called()
+
+    @patch('tunnel.tunnel.subprocess.Popen')
+    def test_start_fail(self, mock_popen):
+        mock_popen.side_effect = OSError("no such file")
+        tunnel = Tunnel('host', 8080)
+        tunnel.start()
+        assert not tunnel.is_alive()
+        assert tunnel.pid is None
+
+    @patch('tunnel.tunnel.subprocess.Popen')
+    def test_start_exit(self, mock_popen):
+        proc = MockProcess(2, 'ssh test')
+        mock_popen.return_value = proc
+        proc.returncode = 1
+        tunnel = Tunnel('host', 5000)
+        tunnel.start()
+        assert tunnel.pid is None
 
     @patch('tunnel.tunnel.psutil.Process')
     def test_stop(self, mock_process):
