@@ -6,19 +6,8 @@ TunnelFox
 
 .. image:: https://codecov.io/gh/jspeyside/tunnelfox/branch/master/graph/badge.svg
     :target: https://codecov.io/gh/jspeyside/tunnelfox
-[![Build Status](https://travis-ci.org/jspeyside/tunnelfox.svg?branch=master)](https://travis-ci.org/jspeyside/tunnelfox)
-[![codecov](https://codecov.io/gh/jspeyside/tunnelfox/branch/master/graph/badge.svg)](https://codecov.io/gh/jspeyside/tunnelfox)
-
 
 .. contents::
-  Overview
-  Usage
-    List
-    New
-    Stop
-  Install
-  License
-
 
 
 Overview
