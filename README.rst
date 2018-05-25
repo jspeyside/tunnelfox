@@ -82,5 +82,6 @@ With `pip` installed, run
 
 You can now run `tunnelfox` from the command line.
 
-## License
+License
+=======
 MIT License
